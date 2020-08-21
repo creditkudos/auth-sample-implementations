@@ -4,15 +4,18 @@ var router = express.Router();
 const jwt = require('jsonwebtoken');
 const OAuth2Client = require('client-oauth2')
 
-const CLIENT_ID = "..."
-const CLIENT_SECRET = "..."
-const REDIRECT_URI = "https://....ngrok.io/callback"
+const CLIENT_ID = process.env.CLIENT_ID;
+const CLIENT_SECRET = process.env.CLIENT_SECRET;
+const REDIRECT_URI = process.env.REDIRECT_URI;
+
+const ACCESS_TOKEN_URI = process.env.ACCESS_TOKEN_URI || "https://api.creditkudos.com/v2/oauth/token";
+const AUTHORIZATION_URI = process.env.AUTHORIZATION_URI || "https://auth.creditkudos.com/oauth/authorize";
 
 const client = new OAuth2Client({
   clientId: CLIENT_ID,
   clientSecret: CLIENT_SECRET,
-  accessTokenUri: "https://api.creditkudos.com/v2/oauth/token",
-  authorizationUri: "https://auth.creditkudos.com/oauth/authorize",
+  accessTokenUri: ACCESS_TOKEN_URI,
+  authorizationUri: AUTHORIZATION_URI,
   redirectUri: REDIRECT_URI,
   scopes: ['read']
 })
