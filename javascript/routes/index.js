@@ -42,6 +42,9 @@ router.get('/redirect', (req, res) => {
   var uri = client.code.getUri({
     query: {
       customer_token: token,
+      // This state variable is the value that'll be returned as a query parameter in the /callback redirect
+      // This can be used to tie a given callback to a specific session
+      state: "state_value",
       debug: true
     }
   })
