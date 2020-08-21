@@ -1,13 +1,7 @@
-
 version: 2.1
 orbs:
-  go:        creditkudos/go@volatile
+  node: circleci/node@3.0.0
 workflows:
-  all:
+  node-tests:
     jobs:
-      - go/go_test:
-          context: ck
-      - go/go_lint:
-          context: ck
-      - go/go_sec:
-          context: ck
+      - node/test
