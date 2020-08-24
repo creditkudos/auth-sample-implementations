@@ -21,8 +21,50 @@ jobs:
           working_directory: javascript
           command: docker build -t creditkudos-development.com/auth-demo .
 
+  go_build:
+    docker: 
+      - image: docker:19.03
+    steps:
+      - setup_remote_docker:
+          version: 18.09.3
+      - checkout
+      - run:
+          working_directory: go
+          command: docker build -t creditkudos-development.com/auth-demo
+  
+  go_sec:
+    docker:
+      - image: circleci/golang:1.14
+    steps:
+      - checkout
+      - run:
+          working_directory: go
+          command: gosec ./...
+  
+  go_lint:
+    docker:
+      - image: golangci/golangci-lint:v1.24
+    steps:
+      - checkout
+      - run:
+          working_directory: go
+          command: golangci-lint run
+  
+  go_test:
+    docker:
+      - image: circleci/golang:1.14
+    steps:
+      - checkout
+      - run:
+          working_directory: go
+          command: go test -race ./...
+
 workflows:
   all:
     jobs:
       - npm_install
       - docker_build_js
+      - go_build
+      - go_sec
+      - go_lint
+      - go_test
