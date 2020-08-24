@@ -1,13 +1,28 @@
-
 version: 2.1
-orbs:
-  go:        creditkudos/go@volatile
+
+jobs:
+  npm_install:
+    docker:
+      - image: node:12
+    steps:
+      - checkout
+      - run:
+          working_directory: javascript
+          command: npm install
+
+  docker_build_js:
+    docker:
+      - image: docker:19.03
+    steps:
+      - setup_remote_docker:
+          version: 18.09.3
+      - checkout
+      - run:
+          working_directory: javascript
+          command: docker build -t creditkudos-development.com/auth-demo .
+
 workflows:
   all:
     jobs:
-      - go/go_test:
-          context: ck
-      - go/go_lint:
-          context: ck
-      - go/go_sec:
-          context: ck
+      - npm_install
+      - docker_build_js
