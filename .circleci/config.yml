@@ -30,7 +30,7 @@ jobs:
       - checkout
       - run:
           working_directory: go
-          command: docker build -t creditkudos-development.com/auth-demo
+          command: docker build -t creditkudos-development.com/auth-demo .
   
   go_sec:
     docker:
