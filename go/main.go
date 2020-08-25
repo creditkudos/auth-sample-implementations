@@ -37,7 +37,7 @@ func main() {
 
 	createRoutes(app, oauthClient)
 
-	if err := app.Listen(3000); err != nil {
+	if err := app.Listen(8080); err != nil {
 		fmt.Println("App errored: ", err.Error())
 	}
 }

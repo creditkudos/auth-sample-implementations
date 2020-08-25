@@ -8,4 +8,4 @@ FROM golang:1.14
 
   CMD go run main.go
 
-  EXPOSE 3000/tcp
+  EXPOSE 8080:8080
