@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net/http"
 	"os"
 
 	"github.com/dgrijalva/jwt-go"
@@ -24,11 +26,11 @@ var (
 )
 
 func main() {
-	redirectURL = os.Getenv("REDIRECTURL")
-	clientID = os.Getenv("CLIENTID")
-	clientSecret = os.Getenv("CLIENTSECRET")
+	redirectURL = os.Getenv("REDIRECT_URL")
+	clientID = os.Getenv("CLIENT_ID")
+	clientSecret = os.Getenv("CLIENT_SECRET")
 	if redirectURL == "" || clientID == "" || clientSecret == "" {
-		panic("Set env variables before running")
+		log.Fatal("Set env variables before running")
 	}
 
 	engine := pug.New("./views", ".pug")
@@ -37,8 +39,8 @@ func main() {
 
 	createRoutes(app, oauthClient)
 
-	if err := app.Listen(8080); err != nil {
-		fmt.Println("App errored: ", err.Error())
+	if err := app.Listen(3000); err != nil {
+		log.Fatal("App errored: %w", err.Error())
 	}
 }
 
@@ -65,7 +67,7 @@ func createRoutes(app *fiber.App, oauthConfig *oauth2.Config) {
 				"message": "Click below to start a journey",
 			},
 		); err != nil {
-			fmt.Println("Failed to load main page:", err)
+			log.Println("Failed to load main page:", err)
 			return
 		}
 	})
@@ -87,29 +89,29 @@ func createRoutes(app *fiber.App, oauthConfig *oauth2.Config) {
 		})
 		tokenString, err := token.SignedString([]byte(clientSecret))
 		if err != nil {
-			fmt.Println("Failed to create jwt token:", err)
+			handleError(err, c)
 			return
 		}
 
 		// Generate the redirection URI and redirect
 		customerToken := oauth2.SetAuthURLParam("customer_token", tokenString)
 		url := oauthConfig.AuthCodeURL("abc", oauth2.AccessTypeOnline, customerToken)
-		fmt.Println("Redirect URL:", url)
+		log.Println("Redirect URL: ", url)
 		c.Redirect(url)
 	})
 
 	// Setup return callback
 	app.Get("/callback", func(c *fiber.Ctx) {
 		code := c.Query("code")
-		fmt.Println("Response code:", code)
+		log.Println("Response code:", code)
 		ctx := c.Context()
 		token, err := oauthConfig.Exchange(ctx, code)
 		if err != nil {
-			handleError(fmt.Errorf("unable to exchange for token: %s", err), c)
+			handleError(fmt.Errorf("unable to exchange for token: %w", err), c)
 			return
 		}
 
-		fmt.Println("Access Token:", token.AccessToken)
+		log.Println("Access Token:", token.AccessToken)
 		// oauthConfig.Client returns an HTTP client that automatically uses and
 		// renews the token
 		oauthConfig.Client(ctx, token)
@@ -126,15 +128,16 @@ func createRoutes(app *fiber.App, oauthConfig *oauth2.Config) {
 				"message": "Journey complete! Click below to start another",
 			},
 		); err != nil {
-			handleError(fmt.Errorf("unable to render /complete: %s", err), c)
+			handleError(fmt.Errorf("unable to render /complete: %w", err), c)
 		}
 	})
 }
 
 // Handle errors and render error response
 func handleError(e error, c *fiber.Ctx) {
-	fmt.Println(e.Error())
+	log.Println(e.Error())
 	if err := c.Render("error", fiber.Map{"message": e.Error()}); err != nil {
-		panic(err)
+		c.SendStatus(http.StatusInternalServerError)
+		log.Fatal(err)
 	}
 }

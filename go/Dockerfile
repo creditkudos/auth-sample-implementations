@@ -2,10 +2,10 @@ FROM golang:1.14
   WORKDIR /home/app/repo
   COPY . /home/app/repo
 
-  ENV CLIENTID=
-  ENV CLIENTSECRET=
-  ENV REDIRECTURL=
+  ENV CLIENT_ID=
+  ENV CLIENT_SECRET=
+  ENV REDIRECT_URL=
 
   CMD go run main.go
 
-  EXPOSE 8080:8080
+  EXPOSE 3000:3000
