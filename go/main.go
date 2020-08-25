@@ -40,7 +40,7 @@ func main() {
 	createRoutes(app, oauthClient)
 
 	if err := app.Listen(3000); err != nil {
-		log.Fatal("App errored: %w", err.Error())
+		log.Fatal(fmt.Errorf("App errored: %w", err))
 	}
 }
 
@@ -138,6 +138,6 @@ func handleError(e error, c *fiber.Ctx) {
 	log.Println(e.Error())
 	if err := c.Render("error", fiber.Map{"message": e.Error()}); err != nil {
 		c.SendStatus(http.StatusInternalServerError)
-		log.Fatal(err)
+		log.Fatal(fmt.Errorf("Failed to render error page: %w", err))
 	}
 }
