@@ -2,6 +2,10 @@ FROM node:12
 
 COPY . .
 
+ENV CLIENT_ID=
+ENV CLIENT_SECRET=
+ENV REDIRECT_URL=
+
 RUN npm install
 
 CMD npm start
