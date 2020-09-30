@@ -95,7 +95,8 @@ func createRoutes(app *fiber.App, oauthConfig *oauth2.Config) {
 
 		// Generate the redirection URI and redirect
 		customerToken := oauth2.SetAuthURLParam("customer_token", tokenString)
-		url := oauthConfig.AuthCodeURL("abc", oauth2.AccessTypeOnline, customerToken)
+		// The first parameter here is the state, which is passed back at the end of the oauth journey
+		url := oauthConfig.AuthCodeURL("sample state", oauth2.AccessTypeOnline, customerToken)
 		log.Println("Redirect URL: ", url)
 		c.Redirect(url)
 	})
