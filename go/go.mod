@@ -1,6 +1,6 @@
 module github.com/creditkudos/auth-sample-implementations
 
-go 1.14
+go 1.16
 
 require (
 	github.com/gofiber/fiber v1.14.2
