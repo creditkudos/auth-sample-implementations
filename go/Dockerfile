@@ -6,6 +6,5 @@ FROM golang:1.17-buster
   ENV CLIENT_SECRET=
   ENV REDIRECT_URL=
   
+  EXPOSE 3000
   CMD go run main.go
-
-  EXPOSE 3000:3000

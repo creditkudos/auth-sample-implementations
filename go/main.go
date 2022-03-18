@@ -1,10 +1,14 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gofiber/fiber"
 	"github.com/gofiber/template/pug"
@@ -14,8 +18,9 @@ import (
 
 /* #nosec G1010*/
 const (
-	accessTokenURL   = "https://api.creditkudos-staging.com/v2/oauth/token"
-	authorizationURL = "https://auth.creditkudos-staging.com/oauth/authorize"
+	accessTokenURL   = "https://api.creditkudos.com/v2/oauth/token"
+	authorizationURL = "https://auth.creditkudos.com/oauth/authorize"
+	customerTokenURL = "https://api.creditkudos.com/v3/customer_token"
 )
 
 // Update the env in docker with your redirect URL and client id/secret
@@ -95,6 +100,53 @@ func createRoutes(app *fiber.App, oauthConfig *oauth2.Config) {
 
 		// Generate the redirection URI and redirect
 		customerToken := oauth2.SetAuthURLParam("customer_token", tokenString)
+		// The first parameter here is the state, which is passed back at the end of the oauth journey
+		url := oauthConfig.AuthCodeURL("sample state", oauth2.AccessTypeOnline, customerToken)
+		log.Println("Redirect URL: ", url)
+		c.Redirect(url)
+	})
+
+	// Setup redirection using Customer Token Security Upgrade implementation
+	app.Get("/redirect/customer-token-upgrade", func(c *fiber.Ctx) {
+		type CustomerTokenData struct {
+			CustomerToken string `json:"customerToken"`
+		}
+		type CustomerTokenResponse struct {
+			Data CustomerTokenData `json:"data"`
+		}
+		var jsonStr = []byte(`{
+				"email": "sam.pull@example.com",
+				"first_name": "Samuel",
+				"last_name": "Pull",
+				"custom_reference": "Pull",
+				"date_of_birth": "1985-10-25",
+				"postcode": "XY12AB"
+		}`)
+
+		req, err := http.NewRequest("POST", customerTokenURL,
+			bytes.NewBuffer(jsonStr),
+		)
+		if err != nil {
+			fmt.Println(err)
+		}
+		req.Header.Set("Content-Type", "application/json")
+		req.SetBasicAuth(clientID, clientSecret)
+		client := http.Client{Timeout: 10 * time.Second}
+		resp, err := client.Do(req)
+		if err != nil {
+			fmt.Println(err)
+		}
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			fmt.Println(err)
+		}
+		res := CustomerTokenResponse{}
+		if err := json.Unmarshal(body, &res); err != nil {
+			fmt.Println(err)
+		}
+
+		// Generate the redirection URI and redirect
+		customerToken := oauth2.SetAuthURLParam("customer_token", res.Data.CustomerToken)
 		// The first parameter here is the state, which is passed back at the end of the oauth journey
 		url := oauthConfig.AuthCodeURL("sample state", oauth2.AccessTypeOnline, customerToken)
 		log.Println("Redirect URL: ", url)
